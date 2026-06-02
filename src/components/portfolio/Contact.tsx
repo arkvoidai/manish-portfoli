@@ -35,6 +35,9 @@ export function Contact() {
         <h2 className="reveal font-serif text-4xl md:text-6xl tracking-tight">
           Let's Build <span className="italic">Something</span>
         </h2>
+        <p className="reveal mt-4 text-base md:text-lg text-muted-foreground" data-delay="80">
+          I reply within the hour. Every time.
+        </p>
         <div className="mt-14 grid md:grid-cols-2 gap-12 md:gap-20">
           <div className="reveal space-y-6">
             <Detail label="Email" value="manisharkvoid@gmail.com" href="mailto:manisharkvoid@gmail.com" />
