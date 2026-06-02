@@ -77,12 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Manish Talukdar — AI Systems Integrator" },
+      { title: "Manish’s Portfolio" },
       { name: "description", content: "Self-taught AI builder from Bengaluru shipping production AI products." },
       { name: "author", content: "Manish Talukdar" },
       { property: "og:site_name", content: "Manish Talukdar" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "Manish’s Portfolio" },
+      { name: "twitter:title", content: "Manish’s Portfolio" },
+      { property: "og:description", content: "Self-taught AI builder from Bengaluru shipping production AI products." },
+      { name: "twitter:description", content: "Self-taught AI builder from Bengaluru shipping production AI products." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/oDlrfq4BZ5Zko5oDlrSnHAmAAjr2/social-images/social-1780429093607-8180.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/oDlrfq4BZ5Zko5oDlrSnHAmAAjr2/social-images/social-1780429093607-8180.webp" },
     ],
     links: [
       {
