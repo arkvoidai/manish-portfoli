@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-export function useCountUp(target: number, duration = 1200) {
+export function useCountUp<T extends HTMLElement = HTMLDivElement>(target: number, duration = 1200) {
   const [value, setValue] = useState(0);
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<T>(null);
   const triggered = useRef(false);
 
   useEffect(() => {
