@@ -73,7 +73,7 @@ export function Contact() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className={field}
-                placeholder="you@company.com"
+                placeholder="Your work email"
               />
               {errors.email && <p className="text-xs text-red-600 mt-1.5">{errors.email}</p>}
             </div>
@@ -84,17 +84,21 @@ export function Contact() {
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
                 className={`${field} h-auto py-3 resize-none`}
-                placeholder="What are you building?"
+                placeholder="What are you building? What is the problem you are trying to solve?"
               />
               {errors.message && <p className="text-xs text-red-600 mt-1.5">{errors.message}</p>}
             </div>
             <button
               type="submit"
-              className="inline-flex items-center justify-center h-12 px-7 rounded-full bg-[color:var(--accent)] text-[color:var(--accent-foreground)] font-medium text-sm hover:bg-[color:var(--accent-hover)] hover:scale-[1.02] transition-all"
+              className="btn-press inline-flex items-center justify-center h-12 px-7 rounded-full bg-[color:var(--accent)] text-[color:var(--accent-foreground)] font-medium text-sm hover:bg-[color:var(--accent-hover)]"
             >
-              {sent ? "Opening your mail app…" : "Send"}
+              {sent ? "Opening your mail app…" : "Send Message →"}
             </button>
+            <p className="text-[13px] italic text-muted-foreground">
+              I read every message personally. No autoresponder. No assistant.
+            </p>
           </form>
+
         </div>
       </div>
     </section>
