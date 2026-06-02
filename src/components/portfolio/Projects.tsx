@@ -60,12 +60,14 @@ const projects: Project[] = [
 export function Projects() {
   return (
     <section id="work" className="py-24 md:py-32">
-      <div className="max-w-6xl mx-auto px-6 md:px-8 mb-10">
-        <h2 className="reveal font-serif text-4xl md:text-6xl tracking-tight">
-          What I've <span className="italic">Shipped</span>
-        </h2>
-      </div>
-      <Carousel ariaLabel="Projects">
+      <Carousel
+        ariaLabel="Projects"
+        title={
+          <h2 className="reveal font-serif text-4xl md:text-6xl tracking-tight">
+            What I've <span className="italic">Shipped</span>
+          </h2>
+        }
+      >
         {projects.map((p) => (
           <ProjectCard key={p.title} p={p} />
         ))}
@@ -78,8 +80,7 @@ function ProjectCard({ p }: { p: Project }) {
   const [open, setOpen] = useState(false);
   return (
     <article
-      className="group relative bg-card rounded-2xl border border-border p-7 md:p-9 card-hover overflow-hidden flex flex-col"
-      style={{ width: "min(88vw, 520px)" }}
+      className="group relative overflow-hidden flex flex-col h-full"
     >
       <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[color:var(--accent)] scale-y-0 origin-top group-hover:scale-y-100 transition-transform duration-300" />
       <div className="flex items-start justify-between gap-3 flex-wrap">
