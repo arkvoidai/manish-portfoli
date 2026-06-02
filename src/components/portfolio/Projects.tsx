@@ -60,12 +60,14 @@ const projects: Project[] = [
 export function Projects() {
   return (
     <section id="work" className="py-24 md:py-32">
-      <div className="max-w-6xl mx-auto px-6 md:px-8 mb-10">
-        <h2 className="reveal font-serif text-4xl md:text-6xl tracking-tight">
-          What I've <span className="italic">Shipped</span>
-        </h2>
-      </div>
-      <Carousel ariaLabel="Projects">
+      <Carousel
+        ariaLabel="Projects"
+        title={
+          <h2 className="reveal font-serif text-4xl md:text-6xl tracking-tight">
+            What I've <span className="italic">Shipped</span>
+          </h2>
+        }
+      >
         {projects.map((p) => (
           <ProjectCard key={p.title} p={p} />
         ))}
