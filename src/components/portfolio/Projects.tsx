@@ -80,8 +80,7 @@ function ProjectCard({ p }: { p: Project }) {
   const [open, setOpen] = useState(false);
   return (
     <article
-      className="group relative bg-card rounded-2xl border border-border p-7 md:p-9 card-hover overflow-hidden flex flex-col"
-      style={{ width: "min(88vw, 520px)" }}
+      className="group relative overflow-hidden flex flex-col h-full"
     >
       <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-[color:var(--accent)] scale-y-0 origin-top group-hover:scale-y-100 transition-transform duration-300" />
       <div className="flex items-start justify-between gap-3 flex-wrap">
