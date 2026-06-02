@@ -1,97 +1,169 @@
-import { useCallback, useEffect, useRef, useState, ReactNode, KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, ReactNode } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 type Props = {
   children: ReactNode[];
   ariaLabel: string;
+  title: ReactNode;
+  subtitle?: ReactNode;
 };
 
-export function Carousel({ children, ariaLabel }: Props) {
+const GAP = 20;
+const TRANSITION = "transform 420ms cubic-bezier(0.4, 0, 0.2, 1)";
+
+export function Carousel({ children, ariaLabel, title, subtitle }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(false);
-  const touchStartX = useRef<number | null>(null);
+  const total = children.length;
 
-  const update = useCallback(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    setAtStart(el.scrollLeft <= 4);
-    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+  const getOffset = useCallback((i: number) => {
+    const track = trackRef.current;
+    if (!track) return 0;
+    const cards = track.querySelectorAll<HTMLElement>(".carousel-card");
+    let offset = 0;
+    for (let k = 0; k < i && k < cards.length; k++) {
+      offset += cards[k].getBoundingClientRect().width + GAP;
+    }
+    return offset;
   }, []);
 
+  const apply = useCallback((i: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    track.style.transform = `translateX(-${getOffset(i)}px)`;
+  }, [getOffset]);
+
+  const goTo = useCallback((i: number) => {
+    const clamped = Math.max(0, Math.min(i, total - 1));
+    setIndex(clamped);
+    apply(clamped);
+  }, [apply, total]);
+
+  // Resize: snap without animation, then re-enable
   useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      el.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+    let timer: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const track = trackRef.current;
+        if (!track) return;
+        track.style.transition = "none";
+        apply(index);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (trackRef.current) trackRef.current.style.transition = TRANSITION;
+          });
+        });
+      }, 100);
     };
-  }, [update]);
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      clearTimeout(timer);
+    };
+  }, [apply, index]);
 
-  const scrollByCard = (dir: 1 | -1) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const first = el.querySelector<HTMLElement>("[data-card]");
-    const step = first ? first.offsetWidth + 24 : el.clientWidth * 0.8;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
-    setIndex((i) => Math.max(0, Math.min(children.length - 1, i + dir)));
-  };
+  // Touch handlers
+  const touch = useRef({ x: 0, y: 0, t: 0, swiping: false });
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
 
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === "ArrowRight") { e.preventDefault(); scrollByCard(1); }
-    if (e.key === "ArrowLeft") { e.preventDefault(); scrollByCard(-1); }
-  };
+    const onStart = (e: TouchEvent) => {
+      touch.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        t: Date.now(),
+        swiping: false,
+      };
+    };
+    const onMove = (e: TouchEvent) => {
+      const dx = Math.abs(e.touches[0].clientX - touch.current.x);
+      const dy = Math.abs(e.touches[0].clientY - touch.current.y);
+      if (dx > dy && dx > 8) {
+        touch.current.swiping = true;
+        e.preventDefault();
+      }
+    };
+    const onEnd = (e: TouchEvent) => {
+      const deltaX = touch.current.x - e.changedTouches[0].clientX;
+      const deltaY = Math.abs(touch.current.y - e.changedTouches[0].clientY);
+      const elapsed = Math.max(1, Date.now() - touch.current.t);
+      const velocity = Math.abs(deltaX) / elapsed;
+      const horizontal = Math.abs(deltaX) > deltaY;
+      const quickFlick = velocity > 0.3 && Math.abs(deltaX) > 20;
+      const slowDrag = Math.abs(deltaX) > 60;
+      if (horizontal && (quickFlick || slowDrag)) {
+        goTo(index + (deltaX > 0 ? 1 : -1));
+      }
+      touch.current.swiping = false;
+    };
 
-  const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) > 50) scrollByCard(dx < 0 ? 1 : -1);
-    touchStartX.current = null;
-  };
+    track.addEventListener("touchstart", onStart, { passive: true });
+    track.addEventListener("touchmove", onMove, { passive: false });
+    track.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      track.removeEventListener("touchstart", onStart);
+      track.removeEventListener("touchmove", onMove);
+      track.removeEventListener("touchend", onEnd);
+    };
+  }, [goTo, index]);
+
+  const atStart = index === 0;
+  const atEnd = index >= total - 1;
 
   return (
-    <div className="relative" aria-label={ariaLabel}>
-      <div className="flex justify-end gap-2 mb-5 px-6 md:px-10">
-        <button
-          aria-label="Previous"
-          disabled={atStart}
-          onClick={() => scrollByCard(-1)}
-          className="w-10 h-10 rounded-full bg-white border border-border shadow-sm flex items-center justify-center hover:border-[color:var(--accent)] hover:text-[color:var(--accent-hover)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <ArrowLeft size={16} />
-        </button>
-        <button
-          aria-label="Next"
-          disabled={atEnd}
-          onClick={() => scrollByCard(1)}
-          className="w-10 h-10 rounded-full bg-white border border-border shadow-sm flex items-center justify-center hover:border-[color:var(--accent)] hover:text-[color:var(--accent-hover)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <ArrowRight size={16} />
-        </button>
+    <section className="carousel-container" aria-label={ariaLabel}>
+      <div className="carousel-header">
+        <div className="flex-1 min-w-0">
+          {title}
+          {subtitle}
+        </div>
+        <div className="carousel-arrows">
+          <button
+            type="button"
+            aria-label="Previous"
+            disabled={atStart}
+            onClick={() => goTo(index - 1)}
+            className={`carousel-arrow ${atStart ? "disabled" : ""}`}
+          >
+            <ArrowLeft size={16} />
+          </button>
+          <button
+            type="button"
+            aria-label="Next"
+            disabled={atEnd}
+            onClick={() => goTo(index + 1)}
+            className={`carousel-arrow ${atEnd ? "disabled" : ""}`}
+          >
+            <ArrowRight size={16} />
+          </button>
+        </div>
       </div>
-      <div
-        ref={trackRef}
-        tabIndex={0}
-        role="region"
-        onKeyDown={onKey}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-6 md:px-10 pb-6 focus:outline-none"
-        style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
-      >
-        <style>{`[role="region"]::-webkit-scrollbar{display:none}`}</style>
-        {children.map((c, i) => (
-          <div key={i} data-card className="snap-start shrink-0">
-            {c}
-          </div>
+
+      <div className="carousel-viewport">
+        <div ref={trackRef} className="carousel-track">
+          {children.map((c, i) => (
+            <div key={i} className="carousel-card">
+              {c}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="carousel-dots" role="tablist">
+        {children.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            role="tab"
+            aria-label={`Go to slide ${i + 1}`}
+            aria-selected={i === index}
+            onClick={() => goTo(i)}
+            className={`dot ${i === index ? "active" : ""}`}
+          />
         ))}
-        <div aria-hidden className="shrink-0 w-2" />
       </div>
-    </div>
+    </section>
   );
 }
